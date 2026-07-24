@@ -1,3 +1,5 @@
 # Etudes (Этюды)
 
-## Advent of code 2025 in rust
+## Advent of code 2025 in Rust
+
+## Advent of code 2025 in Go
