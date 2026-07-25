@@ -1,4 +1,4 @@
-use std::fs;
+use std::{fs};
 
 fn main() {
     let invalid_qnt: u64 = fs::read_to_string("input.txt")
@@ -9,7 +9,17 @@ fn main() {
         .filter(exactly_twice)
         .sum();
 
-    println!("Quantity of invalid ID: {invalid_qnt}")
+    println!("Quantity of invalid ID with exactly twice: {invalid_qnt}");
+
+    let invalid_qnt: u64 = fs::read_to_string("input.txt")
+        .unwrap()
+        .trim()
+        .split(",")
+        .flat_map(split_range)
+        .filter(at_least_twice)
+        .sum();
+
+    println!("Quantity of invalid ID with at least twice: {invalid_qnt}")
 }
 
 fn split_range(range: &str) -> std::ops::RangeInclusive<u64> {
@@ -33,4 +43,31 @@ fn exactly_twice(n: &u64) -> bool {
 
     let mid = len / 2;
     s[..mid] == s[mid..]
+}
+
+fn at_least_twice(n: &u64) -> bool {
+    let s = n.to_string();
+    let len = s.len();
+
+    if len < 2 {
+        return false;
+    }
+
+    for window_len in 1..=(len / 2) {
+        if len % window_len != 0 {
+            continue;
+        }
+
+        let first_segment = &s[..window_len];
+
+        let all_equal = (window_len..len)
+            .step_by(window_len)
+            .all(|start| &s[start..start + window_len] == first_segment);
+
+        if all_equal {
+            return true;
+        }
+    }
+
+    false
 }
