@@ -15,8 +15,58 @@ fn main() {
         None => panic!("not enough parts in the file")
     }
 
+
     let mut ranges: Vec<Range> = ranges.lines().map(input_to_range).collect();
+
     ranges.sort();
+    let ranges = combine_ranges(&ranges);
+
+    let fresh_id_count = ids.lines()
+        .map(|line| line.parse::<u64>().expect("id should be a valid number"))
+        .map(|id| ranges.binary_search_by(
+            |range| range.partial_cmp(&id).expect("unexepted fail during binary search")
+        ))
+        .flatten()
+        .count();
+
+    println!("available ingredient IDs are fresh: {fresh_id_count}")
+}
+
+fn combine_ranges(ranges: &[Range]) -> Vec<Range> {
+    let mut out = Vec::new();
+    let len = ranges.len();
+
+    let mut cri = 0;
+    let mut nri = 1;
+
+    while cri < len {
+        let cr = ranges[cri];
+        let mut comb = Range::new(cr.left, cr.right);
+
+        while nri < len {
+            let nr = ranges[nri];
+
+            // If they don't overlap, stop looking ahead
+            if comb.right < nr.left {
+                break;
+            }
+
+            // They overlap. If the next range extends further right, expand our combined range.
+            // (This replaces the two `else if` branches from the Go code)
+            if comb.right <= nr.right {
+                comb.right = nr.right;
+            }
+
+            cri += 1;
+            nri += 1;
+        }
+
+        out.push(comb);
+        cri += 1;
+        nri += 1;
+    }
+
+    out
 }
 
 fn split_at_empty_line(text: &str) -> Option<(&str, &str)> {
@@ -28,50 +78,46 @@ fn input_to_range(input: &str) -> Range {
         Some((start, end)) => {
             let start: u64 = start.parse().expect("range start should be valid u64");
             let end: u64 = end.parse().expect("range end should be valid u64");
-            Range { start, end }
+            Range::new(start, end)
         },
         None => panic!("invalid range in the input"),
     }
-}
-
-fn binary_search_id_in_ranges(ranges: &Vec<Range>, id: &Id) -> bool {
-
 }
 
 type Id = u64;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 struct Range {
-    start: u64,
-    end: u64,
+    left: u64,
+    right: u64,
 }
 
 impl Range {
     fn new(start: u64, end: u64) -> Self {
-        Range { start, end }
+        Range { left: start, right: end }
     }
 
 }
 
 impl PartialEq<Id> for Range {
     fn eq(&self, other: &Id) -> bool {
-        *other >= self.start && *other <= self.end
+        *other >= self.left && *other <= self.right
     }
 }
 
 impl PartialEq<Range> for Id {
     fn eq(&self, other: &Range) -> bool {
-        self >= &other.start && self <= &other.end
+        self >= &other.left && self <= &other.right
     }
 }
 
 impl PartialOrd<Id> for Range {
     fn partial_cmp(&self, other: &Id) -> Option<Ordering> {
-        if self.start <= *other && self.end >= *other {
+        if self.left <= *other && self.right >= *other {
             Some(Ordering::Equal)
-        } else if self.start > *other {
+        } else if self.left > *other {
             Some(Ordering::Greater)
-        } else if self.end < *other {
+        } else if self.right < *other {
             Some(Ordering::Less)
         } else {
             None
@@ -81,11 +127,11 @@ impl PartialOrd<Id> for Range {
 
 impl PartialOrd<Range> for Id {
     fn partial_cmp(&self, other: &Range) -> Option<Ordering> {
-        if self >= &other.start && self <= &other.end {
+        if self >= &other.left && self <= &other.right {
             Some(Ordering::Equal)
-        } else if self < &other.start {
+        } else if self < &other.left {
             Some(Ordering::Greater)
-        } else if self > &other.end {
+        } else if self > &other.right {
             Some(Ordering::Less)
         } else {
             None
