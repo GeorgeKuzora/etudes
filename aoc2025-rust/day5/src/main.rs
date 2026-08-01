@@ -19,8 +19,10 @@ fn main() {
     let mut ranges: Vec<Range> = ranges.lines().map(input_to_range).collect();
 
     ranges.sort();
+    // Need for both parts
     let ranges = combine_ranges(&ranges);
 
+    // Part 1
     let fresh_id_count = ids.lines()
         .map(|line| line.parse::<u64>().expect("id should be a valid number"))
         .map(|id| ranges.binary_search_by(
@@ -29,7 +31,12 @@ fn main() {
         .flatten()
         .count();
 
-    println!("available ingredient IDs are fresh: {fresh_id_count}")
+    println!("available ingredient IDs are fresh: {fresh_id_count}");
+
+    // Part 2
+    let all_ranges_count: u64 = ranges.iter().map(|range| range.len()).sum();
+
+    println!("ingredient IDs are considered to be fresh: {all_ranges_count}");
 }
 
 fn combine_ranges(ranges: &[Range]) -> Vec<Range> {
@@ -52,7 +59,6 @@ fn combine_ranges(ranges: &[Range]) -> Vec<Range> {
             }
 
             // They overlap. If the next range extends further right, expand our combined range.
-            // (This replaces the two `else if` branches from the Go code)
             if comb.right <= nr.right {
                 comb.right = nr.right;
             }
@@ -97,6 +103,9 @@ impl Range {
         Range { left: start, right: end }
     }
 
+    fn len(&self) -> u64 {
+        self.right - self.left + 1
+    }
 }
 
 impl PartialEq<Id> for Range {
