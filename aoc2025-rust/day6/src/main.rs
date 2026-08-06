@@ -63,6 +63,4 @@ fn main() {
 
     let total: u64 = expressions.iter().map(|exp| exp.result).sum();
     println!("Part1 grand total: {total}");
-
-    // PART 2
 }
