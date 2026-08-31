@@ -1,0 +1,8 @@
+[env]
+PYTHONPATH = "{{cwd}}"
+env_shell_expand = true
+_.python.venv = { path = ".venv", create = true }
+
+[tools]
+"pipx:poetry" = "2.4.1"
+python = "3.14"
