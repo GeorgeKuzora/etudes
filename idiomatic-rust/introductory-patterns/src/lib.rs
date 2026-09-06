@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{path::Path};
 
 #[derive(Debug)]
 pub enum Error {
@@ -29,8 +29,40 @@ fn read_nth_line(path: &Path, n: usize) -> Result<String, Error> {
         .unwrap_or_else(||Err(Error::BadlineArgument(n)))
 }
 
+
+
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
+    #[test]
+    fn test_can_read_cargotoml() {
+        let third_line = read_nth_line(Path::new("Cargo.toml"), 3)
+            .expect("unable to read third line from Cargo.toml");
+        assert_eq!("version = \"0.1.0\"", third_line);
+    }
+
+    #[test]
+    fn test_not_a_file() {
+        let err = read_nth_line(Path::new("not_a_file"), 1)
+            .expect_err("file should not exist");
+        assert!(matches!(err, Error::Io(_)));
+    }
+
+    #[test]
+    fn test_bad_arg_0() {
+        let err = read_nth_line(Path::new("Cargo.toml"), 0)
+            .expect_err("0th line is invalid");
+        assert!(matches!(err, Error::BadlineArgument(_)));
+
+    }
+
+    #[test]
+    fn test_bad_arg_500() {
+        let err = read_nth_line(Path::new("Cargo.toml"), 500)
+            .expect_err("500th line is invalid");
+        assert!(matches!(err, Error::BadlineArgument(_)));
+    }
 }
